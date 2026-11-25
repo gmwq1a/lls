@@ -1,5 +1,5 @@
 // LLS standalone offline support: network-first with cache fallback (borrowed pattern from LLS9, runtime caching for hashed assets).
-const cacheName = 'lls-standalone-1.0.0'
+const cacheName = 'lls-standalone-1.0.1'
 const core = ['./', './index.html']
 self.addEventListener('install', event => event.waitUntil((async () => {
   await (await caches.open(cacheName)).addAll(core)
