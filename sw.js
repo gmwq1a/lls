@@ -1,5 +1,5 @@
 // LLS standalone offline support: network-first with cache fallback (borrowed pattern from LLS9, runtime caching for hashed assets).
-const cacheName = 'lls-standalone-1.0.3'
+const cacheName = 'lls-standalone-1.0.4'
 const core = ['./', './index.html']
 self.addEventListener('install', event => event.waitUntil((async () => {
   await (await caches.open(cacheName)).addAll(core)
@@ -12,11 +12,13 @@ self.addEventListener('activate', event => event.waitUntil((async () => {
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url)
   if (event.request.method !== 'GET' || url.origin !== location.origin) return
+  // Speech pack files are large and fetched with Range requests (206): never cache or intercept them.
+  if (url.pathname.includes('/audio/pack/') || event.request.headers.has('range')) return
   event.respondWith((async () => {
     const cache = await caches.open(cacheName)
     try {
       const response = await fetch(event.request)
-      if (response.ok) await cache.put(event.request, response.clone())
+      if (response.ok && response.status === 200) { try { await cache.put(event.request, response.clone()) } catch { /* quota */ } }
       return response
     } catch {
       const hit = await cache.match(event.request, { ignoreSearch: true })
